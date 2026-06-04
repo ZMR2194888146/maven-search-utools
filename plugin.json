@@ -1,0 +1,25 @@
+{
+  "pluginName": "Maven 依赖搜索",
+  "description": "快速搜索 Maven 中央仓库依赖，一键复制 dependency XML",
+  "main": "src/frontend/index.html",
+  "version": "1.0.0",
+  "logo": "assets/logo.png",
+  "preload": "src/background/index.js",
+  "pluginSetting": {
+    "single": true
+  },
+  "features": [
+    {
+      "code": "mvn",
+      "explain": "搜索 Maven 依赖包",
+      "cmds": [
+        "mvn",
+        {
+          "type": "regex",
+          "match": "/mvn\\s+(.+)/i",
+          "label": "Maven 依赖搜索"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5" />
+      <stop offset="100%" style="stop-color:#7c3aed" />
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#bg)"/>
+  <!-- 火焰/羽毛图标（Maven 的标志性火鸟简化） -->
+  <g transform="translate(128,128)">
+    <!-- 左翅膀 -->
+    <path d="M-10,-60 C-30,-50 -55,-20 -50,15 C-45,40 -25,55 -10,55 C-20,35 -30,10 -25,-15 C-20,-35 -10,-50 -10,-60Z" fill="#fff" opacity="0.9"/>
+    <!-- 右翅膀 -->
+    <path d="M10,-60 C30,-50 55,-20 50,15 C45,40 25,55 10,55 C20,35 30,10 25,-15 C20,-35 10,-50 10,-60Z" fill="#fff" opacity="0.9"/>
+    <!-- 中心 -->
+    <ellipse cx="0" cy="10" rx="12" ry="30" fill="#fff" opacity="0.95"/>
+    <!-- 顶部 -->
+    <path d="M0,-70 C-5,-65 -8,-55 0,-50 C8,-55 5,-65 0,-70Z" fill="#fbbf24"/>
+  </g>
+  <!-- M 字母 -->
+  <text x="128" y="195" font-family="Arial,sans-serif" font-size="48" font-weight="bold" fill="#fff" text-anchor="middle">M</text>
+</svg>

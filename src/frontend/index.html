@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maven 依赖搜索</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f7f8fa;
+      --bg-hover: #f0f1f4;
+      --bg-active: #e8eaed;
+      --text-primary: #1a1a2e;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --border-color: #e5e7eb;
+      --accent-color: #4f46e5;
+      --accent-light: #eef2ff;
+      --success-color: #10b981;
+      --radius: 8px;
+      --font-mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+        Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overflow: hidden;
+    }
+
+    /* ============================================================
+       搜索框（精简版，与 uTools 风格统一）
+       ============================================================ */
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-primary);
+    }
+
+    .search-bar input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .search-bar input::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* ============================================================
+       结果列表
+       ============================================================ */
+    .results-container {
+      max-height: 460px;
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+
+    .results-container::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .results-container::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 2px;
+    }
+
+    .result-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--bg-secondary);
+      transition: background 0.15s;
+      position: relative;
+    }
+
+    .result-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .result-item:active {
+      background: var(--bg-active);
+    }
+
+    .result-item .artifact-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .result-item .artifact-name .name {
+      color: var(--accent-color);
+    }
+
+    .result-item .group-id {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      margin-bottom: 3px;
+    }
+
+    .result-item .version-tag {
+      display: inline-block;
+      font-size: 11px;
+      color: var(--success-color);
+      background: #ecfdf5;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-family: var(--font-mono);
+      font-weight: 500;
+    }
+
+    .result-item .usage-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      color: var(--accent-color);
+      background: var(--accent-light);
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+
+    .result-item .usage-tag svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    .result-item .actions {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-similar {
+      font-size: 11px;
+      color: var(--accent-color);
+      background: var(--accent-light);
+      border: none;
+      border-radius: 4px;
+      padding: 3px 8px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+
+    .result-item:hover .btn-similar {
+      opacity: 1;
+    }
+
+    .btn-similar:hover {
+      background: var(--accent-color);
+      color: #fff;
+    }
+
+    .copy-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .result-item:hover .copy-hint {
+      opacity: 1;
+    }
+
+    /* 复制成功的绿色胶囊 */
+    .copy-success {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: #fff;
+      background: var(--success-color);
+      padding: 3px 10px;
+      border-radius: 10px;
+      white-space: nowrap;
+      animation: capsuleFadeIn 0.2s ease;
+    }
+
+    .copy-success svg {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+
+    .copy-success.fade-out {
+      animation: capsuleFadeOut 0.3s ease forwards;
+    }
+
+    @keyframes capsuleFadeIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes capsuleFadeOut {
+      from { opacity: 1; transform: scale(1); }
+      to   { opacity: 0; transform: scale(0.8); }
+    }
+
+    /* 返回导航栏 */
+    .back-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--accent-light);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 13px;
+      color: var(--accent-color);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .back-bar:hover {
+      background: #e0e7ff;
+    }
+
+    .back-bar .back-group {
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+    }
+
+    /* 状态提示 */
+    .status-message {
+      text-align: center;
+      padding: 40px 16px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .status-message .icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .status-message.loading .spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border-color);
+      border-top-color: var(--accent-color);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-bottom: 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      text-align: center;
+      padding: 30px 16px;
+      color: #ef4444;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 搜索框 -->
+  <div class="search-bar">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
+      <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input id="searchInput" type="text" placeholder="输入 groupId 或 artifactId 搜索，如 spring-boot" autofocus />
+  </div>
+
+  <!-- 结果展示区 -->
+  <div id="resultsContainer" class="results-container">
+    <div class="status-message">
+      <div class="icon">📦</div>
+      <div>输入关键词搜索 Maven 依赖</div>
+    </div>
+  </div>
+
+  <script>
+    var searchInput = document.getElementById('searchInput');
+    var resultsContainer = document.getElementById('resultsContainer');
+    var debounceTimer = null;
+    var searchSeq = 0;
+
+    // ============================================================
+    // 输入监听 —— 原生 input 事件，200ms 防抖
+    // ============================================================
+
+    searchInput.addEventListener('input', function () {
+      var query = searchInput.value.trim();
+      if (debounceTimer) clearTimeout(debounceTimer);
+      if (!query) { renderEmpty(); return; }
+      debounceTimer = setTimeout(function () { doSearch(query); }, 200);
+    });
+
+    // ============================================================
+    // 搜索逻辑
+    // ============================================================
+
+    async function doSearch(query) {
+      var seq = ++searchSeq;
+      renderLoading();
+      try {
+        var results = await window.searchMaven(query);
+        if (seq !== searchSeq) return;
+        if (results && results.error) { renderError(results.error); return; }
+        if (Array.isArray(results) && results.length > 0) {
+          renderResults(results);
+        } else {
+          renderNoResults(query);
+        }
+      } catch (e) {
+        if (seq !== searchSeq) return;
+        renderError(e.message || '搜索失败');
+      }
+    }
+
+    // ============================================================
+    // 渲染
+    // ============================================================
+
+    function renderResults(results, isSimilarMode, sourceGroupId) {
+      var headerHtml = '';
+      if (isSimilarMode) {
+        headerHtml = '<div class="back-bar" onclick="goBackToMain()">← 返回搜索结果 <span class="back-group">' +
+          escapeHtml(sourceGroupId || '') + '</span> 下的相似依赖</div>';
+      }
+
+      var html = '';
+      for (var i = 0; i < results.length; i++) {
+        var item = results[i];
+        html += '<div class="result-item" data-index="' + i + '">' +
+          '<div class="artifact-name">' +
+            '<span class="name">' + escapeHtml(item.artifactId) + '</span>' +
+            '<span class="version-tag">v' + escapeHtml(item.latestVersion || item.version) + '</span>' +
+            '<span class="usage-tag">' +
+              '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8zm6.5-.25A.75.75 0 017.25 7h1a.75.75 0 01.75.75v2.75h.25a.75.75 0 010 1.5h-2a.75.75 0 010-1.5h.25v-2h-.25a.75.75 0 01-.75-.75zM8 6a1 1 0 100-2 1 1 0 000 2z"/></svg>' +
+              formatVersionCount(item.versionCount) +
+            '</span>' +
+          '</div>' +
+          '<div class="group-id">' + escapeHtml(item.groupId) + '</div>' +
+          '<div class="actions">' +
+            '<button class="btn-similar" onclick="event.stopPropagation(); handleSimilar(' + i + ')">相似搜索</button>' +
+            '<span class="copy-hint">点击复制</span>' +
+          '</div>' +
+        '</div>';
+      }
+
+      resultsContainer.innerHTML = headerHtml + html;
+
+      var items = resultsContainer.querySelectorAll('.result-item');
+      for (var j = 0; j < items.length; j++) {
+        items[j].addEventListener('click', function () {
+          handleCopy(parseInt(this.getAttribute('data-index')));
+        });
+      }
+
+      window._currentResults = results;
+    }
+
+    function renderLoading() {
+      resultsContainer.innerHTML = '<div class="status-message loading"><div class="spinner"></div><div>正在搜索 Maven 仓库...</div></div>';
+    }
+
+    function renderEmpty() {
+      resultsContainer.innerHTML = '<div class="status-message"><div class="icon">📦</div><div>输入关键词搜索 Maven 依赖</div></div>';
+    }
+
+    function renderNoResults(query) {
+      resultsContainer.innerHTML = '<div class="status-message"><div class="icon">🔍</div><div>未找到与 "' + escapeHtml(query) + '" 相关的依赖</div></div>';
+    }
+
+    function renderError(message) {
+      resultsContainer.innerHTML = '<div class="error-message">⚠️ ' + escapeHtml(message) + '</div>';
+    }
+
+    // ============================================================
+    // 复制
+    // ============================================================
+
+    function handleCopy(index) {
+      var item = window._currentResults[index];
+      if (!item) return;
+      var xml = window.generateDependencyXML(item.groupId, item.artifactId, item.latestVersion || item.version);
+      utools.copyText(xml);
+      var row = resultsContainer.querySelector('.result-item[data-index="' + index + '"]');
+      if (row) showCopySuccess(row);
+    }
+
+    function showCopySuccess(row) {
+      var existing = resultsContainer.querySelectorAll('.copy-success');
+      for (var i = 0; i < existing.length; i++) existing[i].remove();
+
+      var actions = row.querySelector('.actions');
+      if (!actions) return;
+      var hint = actions.querySelector('.copy-hint');
+      if (hint) hint.style.display = 'none';
+
+      var capsule = document.createElement('span');
+      capsule.className = 'copy-success';
+      capsule.innerHTML = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg>已复制';
+      actions.appendChild(capsule);
+
+      setTimeout(function () {
+        capsule.classList.add('fade-out');
+        setTimeout(function () {
+          capsule.remove();
+          if (hint) hint.style.display = '';
+        }, 300);
+      }, 1200);
+    }
+
+    // ============================================================
+    // 相似搜索
+    // ============================================================
+
+    window._mainResults = null;
+
+    async function handleSimilar(index) {
+      var item = window._currentResults[index];
+      if (!item) return;
+      window._mainResults = window._currentResults;
+      renderLoading();
+      var results = await window.searchSimilar(item.groupId);
+      if (results && results.error) { renderError(results.error); return; }
+      if (Array.isArray(results) && results.length > 0) {
+        renderResults(results, true, item.groupId);
+      } else {
+        renderNoResults(item.groupId);
+      }
+    }
+
+    function goBackToMain() {
+      if (window._mainResults) { renderResults(window._mainResults); }
+      else { renderEmpty(); }
+    }
+
+    // ============================================================
+    // 工具函数
+    // ============================================================
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, function (c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];
+      });
+    }
+
+    function formatVersionCount(count) {
+      if (!count || count <= 0) return '新包';
+      if (count >= 1000) return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'k 版本';
+      return count + ' 版本';
+    }
+
+    // ============================================================
+    // uTools 插件生命周期
+    // ============================================================
+
+    if (window.utools) {
+      utools.onPluginEnter(function (action) {
+        // 清空输入框，聚焦，等待用户输入
+        searchInput.value = '';
+        searchInput.focus();
+        renderEmpty();
+      });
+    }
+  </script>
+</body>
+</html>

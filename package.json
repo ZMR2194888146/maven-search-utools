@@ -1,0 +1,16 @@
+{
+  "name": "mvn-search",
+  "version": "1.0.0",
+  "description": "uTools 插件 - Maven 依赖搜索",
+  "main": "src/background/index.js",
+  "scripts": {
+    "dev": "echo \"请在 uTools 开发者工具中加载此插件目录进行调试\""
+  },
+  "keywords": [
+    "uTools",
+    "maven",
+    "dependency"
+  ],
+  "author": "",
+  "license": "MIT"
+}
