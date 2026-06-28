@@ -277,15 +277,269 @@
       color: #ef4444;
       font-size: 13px;
     }
+
+    /* 设置按钮 */
+    .settings-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+      flex-shrink: 0;
+    }
+    .settings-btn:hover {
+      color: var(--text-secondary);
+      background: var(--bg-hover);
+    }
+
+    /* 设置面板 */
+    .settings-panel {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg-primary);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 0.15s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .settings-close {
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .settings-close:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+    .settings-body {
+      padding: 20px 16px;
+      flex: 1;
+    }
+    .settings-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .settings-input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      background: var(--bg-secondary);
+      outline: none;
+      transition: border-color 0.15s;
+      box-sizing: border-box;
+    }
+    .settings-input:focus {
+      border-color: var(--accent-color);
+    }
+    .settings-tip {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .settings-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    .btn {
+      padding: 6px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s;
+    }
+    .btn-cancel {
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+    }
+    .btn-cancel:hover {
+      background: var(--bg-hover);
+    }
+    .btn-save {
+      background: var(--accent-color);
+      color: #fff;
+    }
+    .btn-save:hover {
+      opacity: 0.9;
+    }
+
+    /* 源切换标签 */
+    .source-tag-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: var(--accent-light);
+      color: var(--accent-color);
+      border: none;
+      border-radius: 4px;
+      padding: 2px 7px 2px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .source-tag-btn:hover { background: #dde4ff; }
+    .source-tag-btn svg { width: 8px; height: 8px; }
+
+    /* 源下拉菜单 */
+    .source-dropdown {
+      display: none;
+      position: fixed;
+      top: 42px;
+      left: 14px;
+      min-width: 200px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      z-index: 100;
+      padding: 4px 0;
+    }
+    .source-dropdown.open { display: block; }
+    .source-dd-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.1s;
+    }
+    .source-dd-item:hover { background: var(--bg-hover); }
+    .source-dd-item .dd-check { color: var(--accent-color); font-weight: 700; margin-right: 6px; }
+    .source-dd-item .dd-name { flex: 1; }
+
+    /* 设置面板：源列表 */
+    .source-list { margin-bottom: 12px; }
+    .source-list-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      margin-bottom: 6px;
+      background: var(--bg-secondary);
+    }
+    .source-list-item .sli-info { flex: 1; min-width: 0; }
+    .source-list-item .sli-name { font-size: 13px; font-weight: 500; }
+    .source-list-item .sli-name .def-badge { color: var(--accent-color); font-size: 10px; margin-left: 6px; font-weight: 600; }
+    .source-list-item .sli-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-family: var(--font-mono); }
+    .source-list-item .sli-actions { display: flex; gap: 4px; flex-shrink: 0; margin-left: 8px; }
+    .source-list-item .sli-actions button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      border-radius: 4px;
+    }
+    .source-list-item .sli-actions button:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .source-list-item .sli-actions .del-btn:hover { color: #ef4444; }
+    .btn-add-source {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      border: 1px dashed var(--border-color);
+      border-radius: var(--radius);
+      background: none;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 14px;
+    }
+    .btn-add-source:hover { background: var(--bg-hover); color: var(--accent-color); border-color: var(--accent-color); }
+
+    /* 源编辑表单 */
+    .source-form { border-top: 1px solid var(--border-color); padding-top: 14px; }
+    .source-form .form-row { margin-bottom: 10px; }
+    .source-form label { display: block; font-size: 12px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
+    .source-form .settings-input { font-size: 12px; padding: 6px 8px; }
+    .source-form .form-check { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+    .source-form .form-check input { accent-color: var(--accent-color); }
   </style>
 </head>
 <body>
   <!-- 搜索框 -->
   <div class="search-bar">
+    <button id="sourceSwitcher" class="source-tag-btn">
+      <span id="sourceTagName">Maven Central</span>
+      <svg viewBox="0 0 8 8"><path d="M1 2l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+    </button>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2">
       <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35"/>
     </svg>
-    <input id="searchInput" type="text" placeholder="输入 groupId 或 artifactId 搜索，如 spring-boot" autofocus />
+    <input id="searchInput" type="text" placeholder="输入 groupId 或 artifactId，如 spring-boot" autofocus />
+    <button id="settingsBtn" class="settings-btn" title="搜索源设置">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- 源切换下拉菜单 -->
+  <div id="sourceDropdown" class="source-dropdown"></div>
+
+  <!-- 设置面板 -->
+  <div id="settingsPanel" class="settings-panel" style="display:none">
+    <div class="settings-header">
+      <span>🔧 搜索源设置</span>
+      <button id="settingsClose" class="settings-close">✕</button>
+    </div>
+    <div class="settings-body">
+      <div id="sourceList" class="source-list"></div>
+      <button id="addSourceBtn" class="btn-add-source">+ 添加搜索源</button>
+      <div id="sourceForm" class="source-form" style="display:none">
+        <div class="form-row">
+          <label>名称</label>
+          <input id="sfName" type="text" class="settings-input" />
+        </div>
+        <div class="form-row">
+          <label>搜索 API 地址（需返回 Solr JSON 格式）</label>
+          <input id="sfUrl" type="text" class="settings-input" />
+        </div>
+        <div class="form-check">
+          <input id="sfDefault" type="checkbox" /> <label for="sfDefault">设为默认源</label>
+        </div>
+        <div class="settings-actions">
+          <button id="sfCancel" class="btn btn-cancel">取消</button>
+          <button id="sfSave" class="btn btn-save">保存</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- 结果展示区 -->
@@ -379,7 +633,9 @@
     }
 
     function renderLoading() {
-      resultsContainer.innerHTML = '<div class="status-message loading"><div class="spinner"></div><div>正在搜索 Maven 仓库...</div></div>';
+      var src = window.getActiveSource();
+      var label = src ? escapeHtml(src.name) : 'Maven 仓库';
+      resultsContainer.innerHTML = '<div class="status-message loading"><div class="spinner"></div><div>正在搜索 ' + label + ' ...</div></div>';
     }
 
     function renderEmpty() {
@@ -473,8 +729,169 @@
     }
 
     // ============================================================
+    // 源标签 & 下拉切换
+    // ============================================================
+
+    var sourceTagName = document.getElementById('sourceTagName');
+    var sourceSwitcher = document.getElementById('sourceSwitcher');
+    var sourceDropdown = document.getElementById('sourceDropdown');
+
+    function updateSourceTag() {
+      var src = window.getActiveSource();
+      sourceTagName.textContent = src ? src.name : 'Maven Central';
+      sourceDropdown.classList.remove('open');
+    }
+
+    function renderDropdown() {
+      var cfg = window.getSearchConfig();
+      var active = cfg.activeName;
+      var html = '';
+      for (var i = 0; i < cfg.sources.length; i++) {
+        var s = cfg.sources[i];
+        var check = s.name === active ? '<span class="dd-check">✓</span>' : '';
+        html += '<div class="source-dd-item" data-name="' + escapeHtml(s.name) + '">' +
+          check +
+          '<span class="dd-name">' + escapeHtml(s.name) + '</span>' +
+        '</div>';
+      }
+      sourceDropdown.innerHTML = html;
+      var items = sourceDropdown.querySelectorAll('.source-dd-item');
+      for (var i = 0; i < items.length; i++) {
+        items[i].addEventListener('click', function () {
+          if (window.setActiveSource(this.getAttribute('data-name'))) {
+            updateSourceTag();
+            searchInput.focus();
+          }
+        });
+      }
+    }
+
+    sourceSwitcher.addEventListener('click', function (e) {
+      e.stopPropagation();
+      renderDropdown();
+      sourceDropdown.classList.toggle('open');
+    });
+
+    document.addEventListener('click', function () {
+      sourceDropdown.classList.remove('open');
+    });
+
+    // ============================================================
+    // 设置面板 —— 多源管理
+    // ============================================================
+
+    var settingsBtn = document.getElementById('settingsBtn');
+    var settingsPanel = document.getElementById('settingsPanel');
+    var settingsClose = document.getElementById('settingsClose');
+    var sourceList = document.getElementById('sourceList');
+    var addSourceBtn = document.getElementById('addSourceBtn');
+    var sourceForm = document.getElementById('sourceForm');
+    var sfName = document.getElementById('sfName');
+    var sfUrl = document.getElementById('sfUrl');
+    var sfDefault = document.getElementById('sfDefault');
+    var sfCancel = document.getElementById('sfCancel');
+    var sfSave = document.getElementById('sfSave');
+    var editingName = null;
+
+    function renderSourceList() {
+      var cfg = window.getSearchConfig();
+      var html = '';
+      for (var i = 0; i < cfg.sources.length; i++) {
+        var s = cfg.sources[i];
+        var defBadge = s.name === cfg.activeName ? '<span class="def-badge">● 默认</span>' : '';
+        html += '<div class="source-list-item">' +
+          '<div class="sli-info">' +
+            '<div class="sli-name">' + escapeHtml(s.name) + defBadge + '</div>' +
+            '<div class="sli-meta">' + escapeHtml(s.url) + '</div>' +
+          '</div>' +
+          '<div class="sli-actions">' +
+            '<button class="edit-btn" data-name="' + escapeHtml(s.name) + '">编辑</button>' +
+            (cfg.sources.length > 1 ? '<button class="del-btn" data-name="' + escapeHtml(s.name) + '">✕</button>' : '') +
+          '</div>' +
+        '</div>';
+      }
+      sourceList.innerHTML = html;
+      sourceList.querySelectorAll('.edit-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () { editSource(this.getAttribute('data-name')); });
+      });
+      sourceList.querySelectorAll('.del-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () { deleteSource(this.getAttribute('data-name')); });
+      });
+    }
+
+    function editSource(name) {
+      var cfg = window.getSearchConfig();
+      var src = cfg.sources.find(function (s) { return s.name === name; });
+      if (!src) return;
+      editingName = name;
+      sfName.value = src.name;
+      sfUrl.value = src.url;
+      sfDefault.checked = src.name === cfg.activeName;
+      sourceForm.style.display = 'block';
+      sfName.focus();
+    }
+
+    function deleteSource(name) {
+      var cfg = window.getSearchConfig();
+      if (cfg.sources.length <= 1) return;
+      cfg.sources = cfg.sources.filter(function (s) { return s.name !== name; });
+      if (cfg.activeName === name) {
+        cfg.activeName = (cfg.sources.find(function (s) { return s.default; }) || cfg.sources[0]).name;
+      }
+      if (window.updateSearchConfig(cfg)) { renderSourceList(); updateSourceTag(); }
+    }
+
+    function resetForm() {
+      editingName = null; sfName.value = ''; sfUrl.value = ''; sfDefault.checked = false;
+      sourceForm.style.display = 'none';
+    }
+
+    settingsBtn.addEventListener('click', function () {
+      renderSourceList(); resetForm(); settingsPanel.style.display = 'flex';
+    });
+
+    function closeSettings() { settingsPanel.style.display = 'none'; searchInput.focus(); }
+    settingsClose.addEventListener('click', closeSettings);
+
+    addSourceBtn.addEventListener('click', function () {
+      editingName = null; sfName.value = ''; sfUrl.value = '';
+      var cfg = window.getSearchConfig();
+      sfDefault.checked = cfg.sources.length === 0;
+      sourceForm.style.display = 'block'; sfName.focus();
+    });
+
+    sfCancel.addEventListener('click', resetForm);
+
+    sfSave.addEventListener('click', function () {
+      var name = sfName.value.trim();
+      var url = sfUrl.value.trim();
+      if (!name || !url) return;
+      var cfg = window.getSearchConfig();
+      var dup = editingName ? cfg.sources.find(function (s) { return s.name === name && name !== editingName; })
+                           : cfg.sources.find(function (s) { return s.name === name; });
+      if (dup) { alert('名称 "' + name + '" 已被使用'); return; }
+      if (editingName) {
+        for (var i = 0; i < cfg.sources.length; i++) {
+          if (cfg.sources[i].name === editingName) {
+            cfg.sources[i].name = name;
+            cfg.sources[i].url = url;
+            if (sfDefault.checked) cfg.activeName = name;
+            break;
+          }
+        }
+      } else {
+        cfg.sources.push({ name: name, url: url });
+        if (sfDefault.checked || cfg.sources.length === 1) cfg.activeName = name;
+      }
+      if (window.updateSearchConfig(cfg)) { resetForm(); renderSourceList(); updateSourceTag(); }
+    });
+
+    // ============================================================
     // uTools 插件生命周期
     // ============================================================
+
+    // 初始化源标签
+    updateSourceTag();
 
     if (window.utools) {
       utools.onPluginEnter(function (action) {
@@ -482,6 +899,7 @@
         searchInput.value = '';
         searchInput.focus();
         renderEmpty();
+        updateSourceTag();
       });
     }
   </script>

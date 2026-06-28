@@ -11,6 +11,87 @@
 const https = require('https');
 
 // ============================================================
+// 搜索源配置 —— 多源，每个源有名称、API 地址
+// ============================================================
+const DEFAULT_SEARCH_URL = 'https://search.maven.org/solrsearch/select';
+const DEFAULT_SOURCES = [{ name: 'Maven Central', url: DEFAULT_SEARCH_URL, default: true }];
+let SEARCH_BASE_URL = DEFAULT_SEARCH_URL;
+let SOURCES = DEFAULT_SOURCES.slice();
+let ACTIVE_SOURCE = SOURCES[0];
+const CONFIG_DOC_ID = 'pluginConfig';
+
+function loadConfig() {
+  try {
+    if (typeof utools !== 'undefined' && utools.db) {
+      let doc = utools.db.get(CONFIG_DOC_ID);
+      if (!doc) return;
+      // 迁移旧格式
+      if (doc.searchBaseUrl && !doc.sources) {
+        doc.sources = [{ name: 'Maven Central', url: doc.searchBaseUrl, default: true }];
+        doc.activeName = 'Maven Central';
+        delete doc.searchBaseUrl;
+        utools.db.put(doc);
+      }
+      // 去掉旧版 keyword 字段
+      if (doc.sources) {
+        doc.sources = doc.sources.map(s => ({ name: s.name, url: s.url, default: !!s.default }));
+        if (doc.activeKeyword) { doc.activeName = doc.activeKeyword; delete doc.activeKeyword; }
+        utools.db.put(doc);
+      }
+      if (doc.sources && doc.sources.length) {
+        SOURCES = doc.sources;
+        const def = doc.activeName || (SOURCES.find(s => s.default) || SOURCES[0]).name;
+        ACTIVE_SOURCE = SOURCES.find(s => s.name === def) || SOURCES[0];
+        SEARCH_BASE_URL = ACTIVE_SOURCE.url.replace(/\/+$/, '');
+      }
+    }
+  } catch (e) { /* use default */ }
+}
+loadConfig();
+
+function getSearchConfig() {
+  return { sources: SOURCES, activeName: ACTIVE_SOURCE ? ACTIVE_SOURCE.name : '' };
+}
+
+function updateSearchConfig(config) {
+  if (!config || !config.sources || !config.sources.length) return false;
+  const sources = config.sources.filter(s => s.name && s.url);
+  if (!sources.length) return false;
+  const activeName = config.activeName || (sources.find(s => s.default) || sources[0]).name;
+  try {
+    if (typeof utools !== 'undefined' && utools.db) {
+      const doc = utools.db.get(CONFIG_DOC_ID) || { _id: CONFIG_DOC_ID };
+      doc.sources = sources; doc.activeName = activeName;
+      utools.db.put(doc);
+    }
+  } catch (e) { /* persist optional */ }
+  SOURCES = sources;
+  ACTIVE_SOURCE = SOURCES.find(s => s.name === activeName) || SOURCES[0];
+  SEARCH_BASE_URL = (ACTIVE_SOURCE && ACTIVE_SOURCE.url || DEFAULT_SEARCH_URL).replace(/\/+$/, '');
+  cache.clear();
+  return true;
+}
+
+function setActiveSource(name) {
+  const src = SOURCES.find(s => s.name === name);
+  if (!src || src === ACTIVE_SOURCE) return !!src;
+  ACTIVE_SOURCE = src;
+  SEARCH_BASE_URL = src.url.replace(/\/+$/, '');
+  cache.clear();
+  try {
+    if (typeof utools !== 'undefined' && utools.db) {
+      const doc = utools.db.get(CONFIG_DOC_ID);
+      if (doc) { doc.activeName = name; utools.db.put(doc); }
+    }
+  } catch (e) {}
+  return true;
+}
+
+function getActiveSource() {
+  return ACTIVE_SOURCE ? { name: ACTIVE_SOURCE.name, url: ACTIVE_SOURCE.url } : null;
+}
+
+// ============================================================
 // 优化1: Keep-Alive Agent —— 复用 TCP+TLS 连接
 // ============================================================
 // 默认每次 https.request 都建立新连接（TCP 三次握手 + TLS 握手），
@@ -159,33 +240,8 @@ async function searchMaven(query, rows = 10) {
   // 取消上一次未完成的搜索请求
   cancelActiveRequest();
 
-  const url = `https://search.maven.org/solrsearch/select?${params.toString()}`;
-  const req = https.request(
-    {
-      hostname: 'search.maven.org',
-      port: 443,
-      path: `/solrsearch/select?${params.toString()}`,
-      method: 'GET',
-      agent: keepAliveAgent,
-      headers: {
-        'User-Agent': 'MavenSearchPlugin/1.0',
-        'Accept': 'application/json',
-      },
-    },
-    (res) => {
-      // 消费响应体的逻辑移到下面统一的 Promise 中处理
-    }
-  );
-
-  activeRequest = req;
-
-  const raw = await new Promise((resolve, reject) => {
-    const r = httpsGet(url);
-    r.then(resolve).catch(reject);
-  });
-
-  activeRequest = null;
-
+  const url = `${SEARCH_BASE_URL}?${params.toString()}`;
+  const raw = await httpsGet(url);
   if (!raw) return [];
 
   const json = safeParseJSON(raw);
@@ -220,7 +276,7 @@ async function getLatestVersion(groupId, artifactId) {
     sort: 'versionCount desc',
   });
 
-  const url = `https://search.maven.org/solrsearch/select?${params.toString()}`;
+  const url = `${SEARCH_BASE_URL}?${params.toString()}`;
   const raw = await httpsGet(url);
   if (!raw) return '';
 
@@ -279,7 +335,7 @@ window.searchSimilar = async function (groupId, rows = 10) {
 
     cancelActiveRequest();
 
-    const url = `https://search.maven.org/solrsearch/select?${params.toString()}`;
+    const url = `${SEARCH_BASE_URL}?${params.toString()}`;
     const raw = await httpsGet(url);
     if (!raw) return [];
 
@@ -304,3 +360,8 @@ window.searchSimilar = async function (groupId, rows = 10) {
 window.generateDependencyXML = function (groupId, artifactId, version) {
   return generateDependencyXML(groupId, artifactId, version);
 };
+
+window.getSearchConfig = function () { return getSearchConfig(); };
+window.updateSearchConfig = function (c) { return updateSearchConfig(c); };
+window.setActiveSource = function (k) { return setActiveSource(k); };
+window.getActiveSource = function () { return getActiveSource(); };
